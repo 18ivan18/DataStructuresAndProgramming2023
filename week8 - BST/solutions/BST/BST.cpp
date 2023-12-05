@@ -24,10 +24,6 @@ BST<Key, Value>::BST(const std::vector<std::pair<Key, Value>> &v)
     assert(isSorted(v));
 
     root = create(v, 0, v.size() - 1);
-
-    // if (!isBST())
-    // {
-    // }
 }
 
 template <typename Key, typename Value>
@@ -267,30 +263,6 @@ void BST<Key, Value>::printHelper(Node *node, int spaces)
         }
     }
 }
-
-// template <typename Key, typename Value>
-// int BST<Key, Value>::rank(const Key &key) const
-// {
-//     return rank(key, root);
-// }
-
-// template <typename Key, typename Value>
-// int BST<Key, Value>::rank(const Key &key, Node *x)
-// {
-//     if (x == nullptr)
-//     {
-//         return 0;
-//     }
-//     if (key < x->key)
-//     {
-//         return rank(key, x->left);
-//     }
-//     else if (key > x->key)
-//     {
-//         return 1 + size(x->left) + rank(key, x->right);
-//     }
-//     return size(x->left);
-// }
 
 template <typename Key, typename Value>
 class BST<Key, Value>::iterator
