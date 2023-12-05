@@ -33,23 +33,23 @@ BST<Key, Value>::BST(const std::vector<std::pair<Key, Value>> &v)
 template <typename Key, typename Value>
 typename BST<Key, Value>::Node *BST<Key, Value>::create(std::vector<std::pair<Key, Value>> vals, int start, int end)
 {
-    //create a node to store the value of arr acc. to its index
+    // create a node to store the value of arr acc. to its index
     Node *p;
-    //go for the condition if it passes then go for other nodes
-    //if not then simply return NULL
+    // go for the condition if it passes then go for other nodes
+    // if not then simply return NULL
     if (start <= end)
     {
         int mid = (start + end) / 2;
-        p = new Node(vals[mid].first, vals[mid].second); //store the value in Node of current mid of array
-        p->left = create(vals, start, mid - 1);          //recursive call of function for its left child
-        p->right = create(vals, mid + 1, end);           //recursive call of function for its right child
+        p = new Node(vals[mid].first, vals[mid].second); // store the value in Node of current mid of array
+        p->left = create(vals, start, mid - 1);          // recursive call of function for its left child
+        p->right = create(vals, mid + 1, end);           // recursive call of function for its right child
     }
     else
     {
-        return nullptr; //if start>end then simply return nullptr then that nullptr be the child of Node
+        return nullptr; // if start>end then simply return nullptr then that nullptr be the child of Node
     }
-    return p; //after execution of all recursive calls simply return p it is containing
-              //the address of root node
+    return p; // after execution of all recursive calls simply return p it is containing
+              // the address of root node
 }
 
 template <typename Key, typename Value>
