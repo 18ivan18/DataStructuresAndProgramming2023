@@ -66,13 +66,13 @@ bool can_read(const std::stack<Book> &pile, const int previous_size, const int m
 
 Pair<bool, std::queue<Book>> read(std::queue<std::stack<Book>> piles, const int max_difference)
 {
-    bool all_readed = true;
+    bool all_read = true;
     std::queue<Book> to_read;
     int previous_size = piles.front().size();
 
     std::stack<Book> circle;
 
-    while (!piles.empty() && all_readed)
+    while (!piles.empty() && all_read)
     {
         std::stack<Book> pile = piles.front();
         piles.pop();
@@ -98,7 +98,7 @@ Pair<bool, std::queue<Book>> read(std::queue<std::stack<Book>> piles, const int 
         }
         else if (circle == pile)
         {
-            all_readed = false;
+            all_read = false;
         }
         else
         {
@@ -110,7 +110,7 @@ Pair<bool, std::queue<Book>> read(std::queue<std::stack<Book>> piles, const int 
         }
     }
 
-    return Pair<bool, std::queue<Book>>(all_readed, to_read);
+    return Pair<bool, std::queue<Book>>(all_read, to_read);
 }
 
 int main()
