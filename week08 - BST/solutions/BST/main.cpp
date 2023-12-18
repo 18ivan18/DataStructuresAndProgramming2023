@@ -16,14 +16,14 @@ void test1()
         bst.put(word, i);
     }
     std::cin >> word;
-    int *result = bst.get(word);
-    if (result == nullptr)
+    BST<char, int>::Iterator result = bst.get(word);
+    if (result == bst.end())
     {
         std::cout << "Not found\n";
     }
     else
     {
-        std::cout << "Found " << *result << std::endl;
+        std::cout << "Found " << (*result).second << std::endl;
     }
     bst.traverseInorder();
     bst.remove('s');
@@ -34,14 +34,27 @@ int main()
 {
     std::vector<std::pair<int, std::string>> v = {{5, "Burgas"}, {10, "Plovdiv"}, {15, "Silistra"}, {20, "Pleven"}, {25, "Stara Zagora"}};
     BST<int, std::string> bst(v);
-    bst.prittyPrint();
-    for (auto it = bst.begin(); it != bst.end(); it++)
-    {
-        std::cout << (*it).first << " " << (*it).second << "\n";
-    }
+    bst.prettyPrint();
+    // for (auto it = bst.begin(); it != bst.end(); it++)
+    // {
+    //     std::cout << (*it).first << " " << (*it).second << "\n";
+    // }
 
     for (auto &&i : bst)
     {
         std::cout << i.first << " " << i.second << "\n";
     }
+
+    BST<int, std::string>::Iterator result = bst.get(10);
+    if (result == bst.end())
+    {
+        std::cout << "Not found\n";
+    }
+    else
+    {
+        std::cout << "Found " << (*result).second << std::endl;
+    }
+    bst.remove(15);
+    result++;
+    std::cout << "Iterator is now working with mutations " << (*result).first << ' ' << (*result).second << std::endl;
 }

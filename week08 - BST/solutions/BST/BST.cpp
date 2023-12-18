@@ -10,7 +10,8 @@ struct BST<Key, Value>::Node
 {
     Key key;
     Value value;
-    Node *left = nullptr, *right = nullptr;
+    // parent is a modification needed for the iterator
+    Node *left = nullptr, *right = nullptr, *parent = nullptr;
     int count = 1;
 
     Node(const Key &key, const Value &value) : key{key}, value{value}
@@ -31,6 +32,7 @@ typename BST<Key, Value>::Node *BST<Key, Value>::create(std::vector<std::pair<Ke
 {
     // create a node to store the value of arr acc. to its index
     Node *p;
+
     // go for the condition if it passes then go for other nodes
     // if not then simply return NULL
     if (start <= end)
@@ -39,13 +41,20 @@ typename BST<Key, Value>::Node *BST<Key, Value>::create(std::vector<std::pair<Ke
         p = new Node(vals[mid].first, vals[mid].second); // store the value in Node of current mid of array
         p->left = create(vals, start, mid - 1);          // recursive call of function for its left child
         p->right = create(vals, mid + 1, end);           // recursive call of function for its right child
+        if (p->left)
+        {
+            p->left->parent = p;
+        }
+        if (p->right)
+        {
+            p->right->parent = p;
+        }
+
+        return p; // after execution of all recursive calls simply return p it is containing
+                  // the address of root node
     }
-    else
-    {
-        return nullptr; // if start>end then simply return nullptr then that nullptr be the child of Node
-    }
-    return p; // after execution of all recursive calls simply return p it is containing
-              // the address of root node
+
+    return nullptr; // if start>end then simply return nullptr then that nullptr be the child of Node
 }
 
 template <typename Key, typename Value>
@@ -69,10 +78,12 @@ typename BST<Key, Value>::Node *BST<Key, Value>::put(Node *x, const Key &key, co
     if (key < x->key)
     {
         x->left = put(x->left, key, value);
+        x->left->parent = x;
     }
     else if (key > x->key)
     {
         x->right = put(x->right, key, value);
+        x->right->parent = x;
     }
     else if (key == x->key)
     {
@@ -83,7 +94,7 @@ typename BST<Key, Value>::Node *BST<Key, Value>::put(Node *x, const Key &key, co
 }
 
 template <typename Key, typename Value>
-Value *BST<Key, Value>::get(const Key &key) const
+typename BST<Key, Value>::Iterator BST<Key, Value>::get(const Key &key) const
 {
     Node *x = root;
     while (x)
@@ -98,10 +109,10 @@ Value *BST<Key, Value>::get(const Key &key) const
         }
         else
         {
-            return &x->value;
+            return Iterator(x);
         }
     }
-    return nullptr;
+    return this->end();
 }
 
 template <typename Key, typename Value>
@@ -117,6 +128,12 @@ void BST<Key, Value>::remove(const Key &key)
 }
 
 template <typename Key, typename Value>
+void BST<Key, Value>::remove(Iterator &iter)
+{
+    root = remove(iter.root->key, root);
+}
+
+template <typename Key, typename Value>
 typename BST<Key, Value>::Node *BST<Key, Value>::remove(const Key &key, Node *x)
 {
     if (!x)
@@ -129,12 +146,14 @@ typename BST<Key, Value>::Node *BST<Key, Value>::remove(const Key &key, Node *x)
         if (!x->left)
         {
             auto toReturn = x->right;
+            toReturn->parent = x->parent;
             delete toDelete;
             return toReturn;
         }
         if (!x->right)
         {
             auto toReturn = x->left;
+            toReturn->parent = x->parent;
             delete toDelete;
             return toReturn;
         }
@@ -142,6 +161,8 @@ typename BST<Key, Value>::Node *BST<Key, Value>::remove(const Key &key, Node *x)
         x = min(t->right);
         x->right = deleteMin(t->right);
         x->left = t->left;
+        x->parent = t->parent;
+        t->left->parent = x;
         delete toDelete;
     }
     else if (x->key < key)
@@ -157,7 +178,7 @@ typename BST<Key, Value>::Node *BST<Key, Value>::remove(const Key &key, Node *x)
 }
 
 template <typename Key, typename Value>
-typename BST<Key, Value>::Node *BST<Key, Value>::min(Node *x)
+typename BST<Key, Value>::Node *BST<Key, Value>::min(Node *x) const
 {
     if (x->left == nullptr)
     {
@@ -232,7 +253,7 @@ int BST<Key, Value>::size(Node *x)
 }
 
 template <typename Key, typename Value>
-void BST<Key, Value>::prittyPrint()
+void BST<Key, Value>::prettyPrint()
 {
     printHelper(root);
 }
@@ -265,72 +286,98 @@ void BST<Key, Value>::printHelper(Node *node, int spaces)
 }
 
 template <typename Key, typename Value>
-class BST<Key, Value>::iterator
+class BST<Key, Value>::Iterator
 {
-    std::queue<BST<Key, Value>::Node *> v;
+    BST<Key, Value>::Node *root;
 
 public:
-    iterator(BST<Key, Value>::Node *root)
+    friend class BST<Key, Value>;
+
+    Iterator(BST<Key, Value>::Node *root) : root{root}
     {
-        inOrder(root);
     }
 
-    void inOrder(BST<Key, Value>::Node *root)
+    Iterator &operator++()
     {
         if (!root)
         {
-            return;
+            return *this;
         }
-        inOrder(root->left);
-        v.push(root);
-        inOrder(root->right);
-    }
 
-    iterator &operator++()
-    {
-        v.pop();
+        if (root->right)
+        {
+            root = root->right;
+            return *this;
+        }
+
+        while (root)
+        {
+            if (root->parent && root->parent->key > root->key)
+            {
+                root = root->parent;
+                break;
+            }
+            root = root->parent;
+        }
         return *this;
     }
 
-    iterator operator++(int)
+    Iterator &operator--()
     {
-        iterator save = *this;
+        if (root->left)
+        {
+            root = root->left;
+            return *this;
+        }
+
+        if (!root->parent || root->parent && root->parent->key < root->key)
+        {
+            return *this;
+        }
+
+        while (root)
+        {
+            if (root->parent && root->parent->key > root->key)
+            {
+                root = root->parent;
+                break;
+            }
+            root = root->parent;
+        }
+        return *this;
+    }
+
+    Iterator operator++(int)
+    {
+        Iterator save = *this;
         ++(*this);
         return save;
     }
 
     std::pair<Key, Value> operator*()
     {
-        return std::make_pair(v.front()->key, v.front()->value);
+        return std::make_pair(root->key, root->value);
     }
 
-    bool operator!=(const iterator &rhs)
+    bool operator==(const Iterator &rhs)
     {
-        if (v.empty() && rhs.v.empty())
-        {
-            return false;
-        }
-        if (v.empty() || rhs.v.empty())
-        {
-            return true;
-        }
-        return v.front() != rhs.v.front();
+        return root == rhs.root;
     }
 
-    bool hasNext()
+    bool operator!=(const Iterator &rhs)
     {
-        return !v.empty();
+        return !(*this == rhs);
     }
 };
 
 template <typename Key, typename Value>
-typename BST<Key, Value>::iterator BST<Key, Value>::begin()
+typename BST<Key, Value>::Iterator BST<Key, Value>::begin() const
 {
-    return iterator(root);
+    return Iterator(min(root));
 }
 
 template <typename Key, typename Value>
-typename BST<Key, Value>::iterator BST<Key, Value>::end()
+typename BST<Key, Value>::Iterator BST<Key, Value>::end() const
 {
-    return iterator(nullptr);
+    return Iterator(nullptr);
 }
